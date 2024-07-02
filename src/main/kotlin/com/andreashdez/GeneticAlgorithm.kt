@@ -1,0 +1,133 @@
+package com.andreashdez
+
+import mu.KotlinLogging
+import kotlin.math.pow
+import kotlin.random.Random
+
+private val logger = KotlinLogging.logger {}
+
+class GeneticAlgorithm(size: Int, initialPopulation: Int) {
+
+    private val minToMate = 10
+    private val maxToMate = 50
+    private val maxEpochCount = 5000
+
+    private val population = (0..initialPopulation).map { chromosome(size) }.toMutableList()
+
+    fun runGeneticAlgorithm(): Chromosome {
+        calculateFitness()
+        var epochCounter = 0
+        while (true) {
+            epochCounter += 1
+            mateRandomChromosomes(minToMate, maxToMate)
+            calculateFitness()
+            logger.info { "epoch: $epochCounter" }
+            logger.info { "best chromosome conflicts sum: " + getBestChromosome().conflictsSum }
+            if (getBestChromosome().conflictsSum == 0) {
+                return getBestChromosome()
+            }
+            if (epochCounter > maxEpochCount) {
+                return getBestChromosome()
+            }
+        }
+    }
+
+    private fun getBestChromosome(): Chromosome {
+        return population.minBy { c -> c.conflictsSum }
+    }
+
+    private fun getWorstChromosome(): Chromosome {
+        return population.maxBy { c -> c.conflictsSum }
+    }
+
+    private fun calculateFitness() {
+        val mostConflicts = getWorstChromosome().conflictsSum
+        val leastConflicts = getBestChromosome().conflictsSum
+        val diffConflicts = mostConflicts - leastConflicts
+        logger.debug { "calculating fitness [mostConflicts='$mostConflicts', leastConflicts='$leastConflicts', diffConflicts='$diffConflicts']" }
+        population.forEach { chromosome ->
+            chromosome.fitness =
+                fitnessFunction(mostConflicts.toDouble(), diffConflicts.toDouble(), chromosome.conflictsSum.toDouble())
+        }
+    }
+
+    private fun fitnessFunction(mostConflicts: Double, diffConflicts: Double, totalConflicts: Double): Double {
+        return (mostConflicts - totalConflicts).pow(3.0) / diffConflicts.pow(3.0)
+    }
+
+    private fun mateRandomChromosomes(minToMate: Int, maxToMate: Int) {
+        val mateAmount = Random.nextInt(minToMate, maxToMate)
+        val fitnessSum = population.sumOf { chromosome -> chromosome.fitness }
+        logger.debug { "selecting random chromosomes [mateAmount=$mateAmount, fitnessSum=$fitnessSum]" }
+        val newChildren: List<Chromosome> = (0..<mateAmount).map { _ ->
+            val parentOne: Chromosome = selectRandomChromosome(fitnessSum) ?: getBestChromosome()
+            val parentTwo: Chromosome = selectRandomChromosome(fitnessSum) ?: getWorstChromosome()
+            this.mateChromosomes(parentOne, parentTwo)
+        }.toList()
+        population.addAll(newChildren)
+    }
+
+    private fun selectRandomChromosome(fitnessSum: Double): Chromosome? {
+        val rouletteSpin = Random.nextDouble(fitnessSum)
+        var selectionRank = 0.0
+        for (chromosome in this.population) {
+            selectionRank += chromosome.fitness
+            if (selectionRank > rouletteSpin) {
+                logger.trace { "selecting chromosome: $chromosome" }
+                return chromosome
+            }
+        }
+        return null
+    }
+
+    private fun mateChromosomes(parentOne: Chromosome, parentTwo: Chromosome): Chromosome {
+        logger.debug { "mate chromosomes" }
+        logger.trace { "parentOne: $parentOne" }
+        logger.trace { "parentTwo: $parentTwo" }
+        val childGenes = pmx(parentOne.genes, parentTwo.genes)
+        val child = Chromosome(childGenes)
+        logger.debug { "child: $child" }
+        return child
+    }
+
+    private fun pmx(parentOne: Array<Gene>, parentTwo: Array<Gene>): Array<Gene> {
+        val chromosomeSize = parentOne.size
+        val chromosomeHalfSize = chromosomeSize / 2
+        val pointOne = Random.nextInt(0, chromosomeHalfSize)
+        val pointTwo = Random.nextInt(chromosomeHalfSize, chromosomeSize)
+        logger.debug { "partially mapped crossover [pointOne=$pointOne, pointTwo=$pointTwo]" }
+        val childGenes = MutableList(chromosomeSize) { -1 }
+        for (i in 0 until chromosomeSize) {
+            if (i in pointOne..<pointTwo) {
+                childGenes[i] = parentOne[i].position
+            }
+        }
+        for (i in pointOne until pointTwo) {
+            if (!childGenes.contains(parentTwo[i].position)) {
+                childGenes[findPosition(i, parentOne, parentTwo, childGenes)] = parentTwo[i].position
+            }
+        }
+        for (i in 0 until chromosomeSize) {
+            if (childGenes[i] == -1) {
+                childGenes[i] = parentTwo[i].position
+            }
+        }
+        return childGenes.map { p -> Gene(p) }.toTypedArray()
+    }
+
+    private fun findPosition(index: Int, parentOne: Array<Gene>, parentTwo: Array<Gene>, child: List<Int>): Int {
+        var position = -1
+        for (i in parentOne.indices) {
+            if (parentTwo[i].position == parentOne[index].position) {
+                position = i
+                break
+            }
+        }
+        logger.trace { "checking position $position" }
+        if (position == -1 || child[position] != -1) {
+            return findPosition(position, parentOne, parentTwo, child)
+        }
+        return position
+    }
+
+}
