@@ -1,4 +1,4 @@
-package com.andreashdez
+package com.andreashdez.app
 
 import kotlin.math.abs
 
@@ -27,6 +27,10 @@ class Chromosome(val genes: Array<Gene>) {
 
     private fun sumGeneConflicts(): Int {
         return genes.sumOf { g -> g.conflicts }
+    }
+
+    override fun toString(): String {
+        return "Chromosome(genes=${genes.contentToString()}, conflictsSum=$conflictsSum, fitness=$fitness)"
     }
 
 }

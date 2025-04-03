@@ -1,4 +1,4 @@
-package com.andreashdez
+package com.andreashdez.utils
 
 enum class BoardElement(val string: String) {
     TOP_LEFT("╔══"),

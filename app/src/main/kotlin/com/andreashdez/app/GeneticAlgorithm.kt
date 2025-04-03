@@ -1,6 +1,7 @@
-package com.andreashdez
+package com.andreashdez.app
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -14,7 +15,11 @@ class GeneticAlgorithm(size: Int, initialPopulation: Int) {
 
     private val population = (0..initialPopulation).map { chromosome(size) }.toMutableList()
 
-    fun runGeneticAlgorithm(): Chromosome {
+    fun getPopulationSize(): Int {
+        return population.size
+    }
+
+    fun runGeneticAlgorithm() {
         calculateFitness()
         var epochCounter = 0
         while (true) {
@@ -24,19 +29,19 @@ class GeneticAlgorithm(size: Int, initialPopulation: Int) {
             logger.info { "epoch: $epochCounter" }
             logger.info { "best chromosome conflicts sum: " + getBestChromosome().conflictsSum }
             if (getBestChromosome().conflictsSum == 0) {
-                return getBestChromosome()
+                return
             }
             if (epochCounter > maxEpochCount) {
-                return getBestChromosome()
+                return
             }
         }
     }
 
-    private fun getBestChromosome(): Chromosome {
+    fun getBestChromosome(): Chromosome {
         return population.minBy { c -> c.conflictsSum }
     }
 
-    private fun getWorstChromosome(): Chromosome {
+    fun getWorstChromosome(): Chromosome {
         return population.maxBy { c -> c.conflictsSum }
     }
 

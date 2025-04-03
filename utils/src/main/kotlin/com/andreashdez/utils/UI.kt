@@ -1,4 +1,4 @@
-package com.andreashdez
+package com.andreashdez.utils
 
 import kotlin.math.max
 
@@ -26,8 +26,6 @@ fun drawBoard(positions: List<Int>, conflicts: List<Int>) {
         }
     }
     drawBottomRow(size)
-    println("best chromosome positions: $positions")
-    println("best chromosome conflicts: $conflicts")
 }
 
 private fun drawTopRow(size: Int) {
