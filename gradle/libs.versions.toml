@@ -3,11 +3,11 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-kotlin = "2.1.20"
-kotlinxDatetime = "0.6.1"
-kotlinxSerializationJSON = "1.7.2"
-kotlinxCoroutines = "1.8.1"
-kotlinLoggingJvmVersion = "7.0.5"
+kotlin = "2.2.0"
+kotlinxDatetime = "0.6.2"
+kotlinxSerializationJSON = "1.8.1"
+kotlinxCoroutines = "1.10.2"
+kotlinLoggingJvmVersion = "7.0.7"
 logbackClassicVersion = "1.5.18"
 
 [libraries]
