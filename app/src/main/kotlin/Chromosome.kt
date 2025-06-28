@@ -36,7 +36,7 @@ class Chromosome(val genes: Array<Gene>) {
 }
 
 fun chromosome(size: Int): Chromosome {
-    val genes: Array<Gene> = (0..size)
+    val genes: Array<Gene> = (0..<size)
         .shuffled()
         .map { i -> Gene(i) }
         .toTypedArray()

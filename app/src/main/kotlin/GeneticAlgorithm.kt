@@ -1,17 +1,20 @@
 package com.andreashdez.app
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-
 import kotlin.math.pow
 import kotlin.random.Random
 
 private val logger = KotlinLogging.logger {}
 
-class GeneticAlgorithm(size: Int, initialPopulation: Int) {
+private const val DEFAULT_FITNESS_EXPONENT = 3.0
 
-    private val minToMate = 10
-    private val maxToMate = 50
-    private val maxEpochCount = 5000
+class GeneticAlgorithm(
+    size: Int,
+    initialPopulation: Int,
+    private val minToMate: Int,
+    private val maxToMate: Int,
+    private val maxEpochCount: Int
+) {
 
     private val population = (0..initialPopulation).map { chromosome(size) }.toMutableList()
 
@@ -21,17 +24,12 @@ class GeneticAlgorithm(size: Int, initialPopulation: Int) {
 
     fun runGeneticAlgorithm() {
         calculateFitness()
-        var epochCounter = 0
-        while (true) {
-            epochCounter += 1
+        for (epochCounter in 0 until maxEpochCount) {
             mateRandomChromosomes(minToMate, maxToMate)
             calculateFitness()
             logger.info { "epoch: $epochCounter" }
             logger.info { "best chromosome conflicts sum: " + getBestChromosome().conflictsSum }
             if (getBestChromosome().conflictsSum == 0) {
-                return
-            }
-            if (epochCounter > maxEpochCount) {
                 return
             }
         }
@@ -57,7 +55,8 @@ class GeneticAlgorithm(size: Int, initialPopulation: Int) {
     }
 
     private fun fitnessFunction(mostConflicts: Double, diffConflicts: Double, totalConflicts: Double): Double {
-        return (mostConflicts - totalConflicts).pow(3.0) / diffConflicts.pow(3.0)
+        return (mostConflicts - totalConflicts).pow(DEFAULT_FITNESS_EXPONENT) /
+                diffConflicts.pow(DEFAULT_FITNESS_EXPONENT)
     }
 
     private fun mateRandomChromosomes(minToMate: Int, maxToMate: Int) {
