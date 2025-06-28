@@ -44,17 +44,17 @@ class GeneticAlgorithm(
     }
 
     private fun calculateFitness() {
-        val mostConflicts = getWorstChromosome().conflictsSum
+        val mostConflicts = getWorstChromosome().conflictsSum.toDouble()
         val leastConflicts = getBestChromosome().conflictsSum
         val diffConflicts = mostConflicts - leastConflicts
-        logger.debug { "calculating fitness [mostConflicts='$mostConflicts', leastConflicts='$leastConflicts', diffConflicts='$diffConflicts']" }
+        logger.debug { "calculating fitness [worst='$mostConflicts', best='$leastConflicts', diff='$diffConflicts']" }
         population.forEach { chromosome ->
             chromosome.fitness =
-                fitnessFunction(mostConflicts.toDouble(), diffConflicts.toDouble(), chromosome.conflictsSum.toDouble())
+                fitnessFunction(mostConflicts, diffConflicts, chromosome.conflictsSum)
         }
     }
 
-    private fun fitnessFunction(mostConflicts: Double, diffConflicts: Double, totalConflicts: Double): Double {
+    private fun fitnessFunction(mostConflicts: Double, diffConflicts: Double, totalConflicts: Int): Double {
         return (mostConflicts - totalConflicts).pow(DEFAULT_FITNESS_EXPONENT) /
                 diffConflicts.pow(DEFAULT_FITNESS_EXPONENT)
     }
